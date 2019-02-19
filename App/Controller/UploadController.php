@@ -12,43 +12,47 @@ use Swoolefy\Core\Swfy;
 
 class UploadController extends BController {
 
-    private $ret_code = 20001; // 没配置supervisord
+    private $ret_code_miss_supervisord = 20001; // 没配置supervisord
+    private $ret_code_miss_path = 20002; // 没配置supervisord['path']
 
     /**
      * uploadFile
      * @return mixed
      */
     public function uploadFile() {
-
+        // 获取post文件内容
         $streamData = $this->getRawContent();
         $filename = $this->getQueryParams('filename');
         $ext = $this->getQueryParams('ext');
         $program = $this->getQueryParams('program');
+
         if(!isset($program)) {
             $program = "Test1";
         }
-        $path = $this->getQueryParams("path");
+        $path = $this->getQueryParams('path');
 
         if(!isset($path)) {
             $app_conf = Swfy::getAppConf();
             if(!isset($app_conf['supervisord'])) {
                 $data = [
-                    'ret' => $this->ret_code,
+                    'ret' => $this->ret_code_miss_supervisord,
                     'msg' => "你需要在Config/config.php在配置supervisord",
                     'data' => ''
                 ];
                 $this->returnJson($data);
+                return;
             }else {
                 $supervisord_ini_path = $app_conf['supervisord']['path'];
                 if(!empty($supervisord_ini_path)) {
                     $path = '/'.trim($supervisord_ini_path,'/').'/';
                 }else {
                     $data = [
-                        'ret' => 20002,
+                        'ret' => $this->ret_code_miss_path,
                         'msg' => "你需要在Config/config.php在配置supervisord['path']",
                         'data' => ''
                     ];
                     $this->returnJson($data);
+                    return;
                 }
 
                 $username = $app_conf['supervisord']['username'];
@@ -62,12 +66,12 @@ class UploadController extends BController {
         }
         chmod($file_path, 0755);
 
-        $shell1 = "supervisorctl -u {$username} -p {$password} reread {$program}";
+        $shell_reread = "supervisorctl -u {$username} -p {$password} reread {$program}";
 
-        $shell2 = "supervisorctl -u {$username} -p {$password} update {$program}";
+        $shell_update = "supervisorctl -u {$username} -p {$password} update {$program}";
 
-        $this->execSupervisorCtl($shell1);
-        $result = $this->execSupervisorCtl($shell2);
+        $this->execSupervisorCtl($shell_reread);
+        $result = $this->execSupervisorCtl($shell_update);
 
         if($result['code'] == 0) {
             $data = [

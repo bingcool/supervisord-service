@@ -6,10 +6,11 @@ return [
     //'catch_handle' => '网站维护中',
     'session_start' => false,
 
+    // supervisord的配置
     'supervisord' => [
-        'path' => "/home/wwwroot/daemon/",
-        'username' => 'bingcool',
-        'password' => '123456'
+        'path' => "/home/wwwroot/daemon/", // .ini配置文件所在的目录
+        'username' => 'bingcool', // 用户名
+        'password' => '123456' // 密码
     ],
 
     'components' => [
