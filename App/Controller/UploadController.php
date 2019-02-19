@@ -87,8 +87,7 @@ class UploadController extends BController {
                     'data' => $result['signal']
                 ];
             }
-
-
+            
         }else {
             // 用户名或密码认证失败
             if($result['code'] == 2) {
